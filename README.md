@@ -1,17 +1,14 @@
 # AWS Route 53
 
-This java application collect information about healthchecks on AWS Route53
-and upload it into ATSD as entities with tags.
-
-Result entities will look like following:
+This java program copies AWS Route53 Health Check attributes into entity tags on the target ATSD server.
 
 ![](images/entities-list.png)
 
 ![](images/entity.png)
 
-## Build from source
+## Build JAR file from source
 
-- Clone repository
+Clone repository
 
 ```
 cd /home
@@ -21,24 +18,19 @@ git clone -b aws-route53 https://github.com/axibase/atsd-integration
 cd atsd-integration/
 ```
 
-- Build jar executable using Maven
+Build jar executable using Maven
 
 ```
 mvn clean package
 ```
 
-Result package would be created in `target` directory and named `aws-route53-atsd-[version]-jar-with-dependencies.jar`
+The jar file will be created in the `target` directory and named `aws-route53-atsd-[version]-jar-with-dependencies.jar`
 
 ## Configure
 
-- Create two files: **aws.properties** and **atsd.properties** in `/home/aws-route53-atsd`
+Change directory to `/home/aws-route53-atsd`
 
-```
-touch aws.properties
-touch atsd.properties
-```
-
-**aws.properties** file contains credentials for connecting to AWS Route53
+Create `aws.properties` file with AWS credentials
 
 ```
 aws.access.key=access_key
@@ -46,10 +38,10 @@ aws.secret.key=secret_key
 aws.region=us-east-1
 ```
 
-**atsd.properties** file contains parameters for connecting to ATSD using [atsd-api-java](https://github.com/axibase/atsd-api-java)
+Create `atsd.properties` file with ATSD credentials.
 
 ```
-axibase.tsd.api.server.name=localhost
+axibase.tsd.api.server.name=atsd_hostname
 axibase.tsd.api.server.port=8443
 axibase.tsd.api.protocol=https
 axibase.tsd.api.ssl.errors.ignore=true
@@ -59,23 +51,24 @@ axibase.tsd.api.password=axibase
 
 ## Run
 
-- Run application using following command (specify path to **aws.properties** and **atsd.properties** with **-Daws.properties** and **-Daxibase.tsd.api.client.properties** parameters)
+Run the program by executing the following command. Specify absolute path to `aws.properties` and `atsd.properties` files using `-Daws.properties` and `-Daxibase.tsd.api.client.properties` arguments.
 
 ```
-cd target
-java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar aws-route53-atsd-1.0-jar-with-dependencies.jar
+java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar /home/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
 ```
 
-- Check if entities were created in ATSD
+Login into ATSD user interface and search for entities by entering Health Check id in the Entity search form.
 
-- Also this task may be added to cron
+## Schedule
+
+To upload Health Check attributes into ATSD on schedule, add the command to `cron`.
 
 ```
 crontab -e
 ```
 
-Add job in cron file (execute every minute)
+Specify the schedule and the command.
 
 ```
-* * * * * java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar /home/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
+@hourly java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar /home/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
 ```
