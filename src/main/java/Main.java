@@ -1,3 +1,4 @@
+import ch.qos.logback.classic.Logger;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.route53.AmazonRoute53;
@@ -11,12 +12,14 @@ import com.axibase.tsd.model.system.ClientConfiguration;
 
 import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.AccessDeniedException;
 import java.util.*;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
+        Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
+        root.setLevel(ch.qos.logback.classic.Level.WARN);
+
         String atsdPropertiesFile = System.getProperty("axibase.tsd.api.client.properties");
         if (atsdPropertiesFile == null || atsdPropertiesFile.length() == 0) {
             System.out.println("No ATSD settings file. Specify -Daxibase.tsd.api.client.properties parameter");
@@ -47,6 +50,7 @@ public class Main {
         HttpClientManager httpClientManager = new HttpClientManager(clientConfiguration);
         MetaDataService metaDataService = new MetaDataService(httpClientManager);
 
+        System.out.println("Connecting to AWS Endpoint");
         ListHealthChecksResult healthCheckResult = route53Client.listHealthChecks();
 
         HashMap<String, HashMap<String, String>> healthCheckTagsMap = getHealthCheckTags(healthCheckResult, route53Client);
@@ -59,6 +63,8 @@ public class Main {
 
             sendEntity(healthCheck, healthCheckTags, metaDataService);
         }
+
+        System.out.println(healthCheckResult.getHealthChecks().size() + " health checks processed");
     }
 
     private static HashMap<String, HashMap<String, String>> getHealthCheckTags(

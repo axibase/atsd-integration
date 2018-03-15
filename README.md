@@ -8,10 +8,16 @@ This java program copies AWS Route53 Health Check attributes into entity tags on
 
 ## Build JAR file from source
 
+Install git and maven
+
+```
+sudo apt install git maven
+```
+
 Clone repository
 
 ```
-cd /home
+cd ~
 mkdir aws-route53-atsd
 cd aws-route53-atsd
 git clone -b aws-route53 https://github.com/axibase/atsd-integration
@@ -28,7 +34,7 @@ The jar file will be created in the `target` directory and named `aws-route53-at
 
 ## Configure
 
-Change directory to `/home/aws-route53-atsd`
+Change directory to `~/aws-route53-atsd`
 
 Create `aws.properties` file with AWS credentials
 
@@ -51,10 +57,13 @@ axibase.tsd.api.password=axibase
 
 ## Run
 
-Run the program by executing the following command. Specify absolute path to `aws.properties` and `atsd.properties` files using `-Daws.properties` and `-Daxibase.tsd.api.client.properties` arguments.
+Run the program by executing the following command. Specify absolute path to `aws.properties` and `atsd.properties` files using `-Daws.properties` and `-Daxibase.tsd.api.client.properties` arguments. Replace `axibase` with actual user name if necessary.
 
 ```
-java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar /home/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
+java \
+    -Daxibase.tsd.api.client.properties=/home/axibase/aws-route53-atsd/atsd.properties \
+    -Daws.properties=/home/axibase/aws-route53-atsd/aws.properties \
+    -jar /home/axibase/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
 ```
 
 Login into ATSD user interface and search for entities by entering Health Check id in the Entity search form.
@@ -67,8 +76,8 @@ To upload Health Check attributes into ATSD on schedule, add the command to `cro
 crontab -e
 ```
 
-Specify the schedule and the command.
+Specify the schedule and the command. Replace `axibase` with actual user name if necessary.
 
 ```
-@hourly java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar /home/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
+@hourly java -Daxibase.tsd.api.client.properties=/home/axibase/aws-route53-atsd/atsd.properties -Daws.properties=/home/axibase/aws-route53-atsd/aws.properties -jar /home/axibase/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
 ```
