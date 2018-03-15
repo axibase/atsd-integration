@@ -11,12 +11,29 @@ Result entities will look like following:
 
 ## Build from source
 
-- Create two files: **aws.properties** and **atsd.properties** in `/home/aws-route53-atsd`
+- Clone repository
 
 ```
 cd /home
 mkdir aws-route53-atsd
 cd aws-route53-atsd
+git clone -b aws-route53 https://github.com/axibase/atsd-integration
+cd atsd-integration/
+```
+
+- Build jar executable using Maven
+
+```
+mvn clean package
+```
+
+Result package would be created in `target` directory and named `aws-route53-atsd-[version]-jar-with-dependencies.jar`
+
+## Configure
+
+- Create two files: **aws.properties** and **atsd.properties** in `/home/aws-route53-atsd`
+
+```
 touch aws.properties
 touch atsd.properties
 ```
@@ -40,20 +57,7 @@ axibase.tsd.api.username=axibase
 axibase.tsd.api.password=axibase
 ```
 
-- Clone repository
-
-```
-git clone -b aws-route53 https://github.com/axibase/atsd-integration
-cd atsd-integration/
-```
-
-- Build jar executable using Maven
-
-```
-mvn clean package
-```
-
-Result package would be created in `target` directory and named `aws-route53-atsd-[version]-jar-with-dependencies.jar`
+## Run
 
 - Run application using following command (specify path to **aws.properties** and **atsd.properties** with **-Daws.properties** and **-Daxibase.tsd.api.client.properties** parameters)
 
