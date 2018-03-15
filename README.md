@@ -9,10 +9,17 @@ Result entities will look like following:
 
 ![](images/entity.png)
 
-## Executing binaries
+## Build from source
 
-- Download jar from latest release at [Releases](https://github.com/axibase/atsd-integration/releases) page
-- Create two files: **aws.properties** and **atsd.properties**
+- Create two files: **aws.properties** and **atsd.properties** in `/home/aws-route53-atsd`
+
+```
+cd /home
+mkdir aws-route53-atsd
+cd aws-route53-atsd
+touch aws.properties
+touch atsd.properties
+```
 
 **aws.properties** file contains credentials for connecting to AWS Route53
 
@@ -33,16 +40,6 @@ axibase.tsd.api.username=axibase
 axibase.tsd.api.password=axibase
 ```
 
-- Start application using following command (specify path to **aws.properties** and **atsd.properties** with **-Daws.properties** and **-Daxibase.tsd.api.client.properties** parameters)
-
-```
-java -Daxibase.tsd.api.client.properties=atsd.properties -Daws.properties=aws.properties -jar aws-route53-atsd-1.0-jar-with-dependencies.jar
-```
-
-- Check if entities were created in ATSD
-
-## Build from source
-
 - Clone repository
 
 ```
@@ -50,11 +47,31 @@ git clone -b aws-route53 https://github.com/axibase/atsd-integration
 cd atsd-integration/
 ```
 
-- Edit **aws.properties** and **atsd.properties** in `src/main/resources` as shown above.
-- Run application using Maven
+- Build jar executable using Maven
 
 ```
-mvn compile exec:java -X -Daxibase.tsd.api.client.properties=src/main/resources/atsd.properties -Daws.properties=src/main/resources/aws.properties
+mvn clean package
+```
+
+Result package would be created in `target` directory and named `aws-route53-atsd-[version]-jar-with-dependencies.jar`
+
+- Run application using following command (specify path to **aws.properties** and **atsd.properties** with **-Daws.properties** and **-Daxibase.tsd.api.client.properties** parameters)
+
+```
+cd target
+java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar aws-route53-atsd-1.0-jar-with-dependencies.jar
 ```
 
 - Check if entities were created in ATSD
+
+- Also this task may be added to cron
+
+```
+crontab -e
+```
+
+Add job in cron file (execute every minute)
+
+```
+* * * * * java -Daxibase.tsd.api.client.properties=/home/aws-route53-atsd/atsd.properties -Daws.properties=/home/aws-route53-atsd/aws.properties -jar /home/aws-route53-atsd/atsd-integration/target/aws-route53-atsd-1.0-jar-with-dependencies.jar
+```
