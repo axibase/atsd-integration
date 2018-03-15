@@ -83,7 +83,7 @@ public class Main {
                 healthCheckTagsMap.put(tagSet.getResourceId(), tags);
             }
         } catch (AmazonRoute53Exception e) {
-            System.out.println("User not authorized to perform listTagsForResources request");
+            System.err.println("Tags request error: " + e.getMessage());
         }
 
         return healthCheckTagsMap;
@@ -124,53 +124,47 @@ public class Main {
             entity.setLabel(url);
         }
 
-        addEntityTag(tags, "protocol", protocol);
-        addEntityTag(tags, "ip_address", ipAddress);
-        addEntityTag(tags, "domain_name", domain);
-        addEntityTag(tags, "port", port);
-        addEntityTag(tags, "resource_path", path);
-        addEntityTag(tags, "url", url);
+        tags.put("protocol", protocol);
+        tags.put("ip_address", ipAddress);
+        tags.put("domain_name", domain);
+        tags.put("port", port);
+        tags.put("resource_path", path);
+        tags.put("url", url);
 
-        addEntityTag(tags, "search_string", checkConfig.getSearchString());
-        addEntityTag(tags, "request_interval", checkConfig.getRequestInterval());
-        addEntityTag(tags, "failure_threshold", checkConfig.getFailureThreshold());
-        addEntityTag(tags, "measure_latency", checkConfig.getMeasureLatency());
-        addEntityTag(tags, "inverted", checkConfig.getInverted());
-        addEntityTag(tags, "health_threshold", checkConfig.getHealthThreshold());
-        addEntityTag(tags, "enable_sni", checkConfig.isEnableSNI());
-        addEntityTag(tags, "regions", String.join(", ", checkConfig.getRegions()));
-        addEntityTag(tags, "insufficient_data_health_status", checkConfig.getInsufficientDataHealthStatus());
-        addEntityTag(tags, "children_health_checks", String.join(", ", checkConfig.getChildHealthChecks()));
+        tags.put("search_string", checkConfig.getSearchString());
+        if (checkConfig.getRequestInterval() != null) {
+            tags.put("request_interval", String.valueOf(checkConfig.getRequestInterval()));
+        }
+        if (checkConfig.getFailureThreshold() != null) {
+            tags.put("failure_threshold", String.valueOf(checkConfig.getFailureThreshold()));
+        }
+        if (checkConfig.getMeasureLatency() != null) {
+            tags.put("measure_latency", String.valueOf(checkConfig.getMeasureLatency()));
+        }
+        if (checkConfig.getInverted() != null) {
+            tags.put("inverted", String.valueOf(checkConfig.getInverted()));
+        }
+        if (checkConfig.getHealthThreshold() != null) {
+            tags.put("health_threshold", String.valueOf(checkConfig.getHealthThreshold()));
+        }
+        if (checkConfig.isEnableSNI() != null) {
+            tags.put("enable_sni", String.valueOf(checkConfig.isEnableSNI()));
+        }
+        tags.put("regions", String.join(", ", checkConfig.getRegions()));
+        tags.put("insufficient_data_health_status", checkConfig.getInsufficientDataHealthStatus());
+        tags.put("children_health_checks", String.join(", ", checkConfig.getChildHealthChecks()));
 
         AlarmIdentifier alarmIdentifier = checkConfig.getAlarmIdentifier();
         if (alarmIdentifier != null) {
-            addEntityTag(tags, "alarm_identifier_name", alarmIdentifier.getName());
-            addEntityTag(tags, "alarm_identifier_region", alarmIdentifier.getRegion());
+            tags.put("alarm_identifier_name", alarmIdentifier.getName());
+            tags.put("alarm_identifier_region", alarmIdentifier.getRegion());
         }
 
         for (Map.Entry<String, String> healthCheckTag : healthCheckTags.entrySet()) {
-            addEntityTag(tags, "tag." + healthCheckTag.getKey(), healthCheckTag.getValue());
+            tags.put("tag." + healthCheckTag.getKey(), healthCheckTag.getValue());
         }
 
         entity.setTags(tags);
         metaDataService.createOrReplaceEntity(entity);
-    }
-
-    private static void addEntityTag(HashMap<String, String> tags, String key, String value) {
-        if (value != null) {
-            tags.put(key, value);
-        }
-    }
-
-    private static void addEntityTag(HashMap<String, String> tags, String key, Integer value) {
-        if (value != null) {
-            tags.put(key, String.valueOf(value));
-        }
-    }
-
-    private static void addEntityTag(HashMap<String, String> tags, String key, Boolean value) {
-        if (value != null) {
-            tags.put(key, String.valueOf(value));
-        }
     }
 }
