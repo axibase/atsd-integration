@@ -70,6 +70,11 @@ public class Main {
     private static HashMap<String, HashMap<String, String>> getHealthCheckTags(
             ListHealthChecksResult healthCheckResult,
             AmazonRoute53 route53Client) {
+        HashMap<String, HashMap<String, String>> healthCheckTagsMap = new HashMap<>();
+        if (healthCheckResult.getHealthChecks().size() == 0) {
+            return healthCheckTagsMap;
+        }
+
         ListTagsForResourcesRequest tagsRequest = new ListTagsForResourcesRequest();
         List<String> healthCheckIds = new ArrayList<>(healthCheckResult.getHealthChecks().size());
         for (HealthCheck healthCheck : healthCheckResult.getHealthChecks()) {
@@ -78,7 +83,6 @@ public class Main {
         tagsRequest.setResourceIds(healthCheckIds);
         tagsRequest.setResourceType(TagResourceType.Healthcheck);
 
-        HashMap<String, HashMap<String, String>> healthCheckTagsMap = new HashMap<>();
         try {
             ListTagsForResourcesResult tagsResult = route53Client.listTagsForResources(tagsRequest);
             for (ResourceTagSet tagSet : tagsResult.getResourceTagSets()) {
