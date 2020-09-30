@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.util.*;
 
 public class Main {
+    private static final int LIST_TAGS_BATCH_SIZE = 10;
 
     public static void main(String[] args) throws IOException {
         Logger root = (ch.qos.logback.classic.Logger) org.slf4j.LoggerFactory.getLogger(ch.qos.logback.classic.Logger.ROOT_LOGGER_NAME);
@@ -71,15 +72,31 @@ public class Main {
             ListHealthChecksResult healthCheckResult,
             AmazonRoute53 route53Client) {
         HashMap<String, HashMap<String, String>> healthCheckTagsMap = new HashMap<>();
-        if (healthCheckResult.getHealthChecks().size() == 0) {
+        List<HealthCheck> healthChecks = healthCheckResult.getHealthChecks();
+        if (healthChecks.isEmpty()) {
             return healthCheckTagsMap;
         }
 
-        ListTagsForResourcesRequest tagsRequest = new ListTagsForResourcesRequest();
-        List<String> healthCheckIds = new ArrayList<>(healthCheckResult.getHealthChecks().size());
-        for (HealthCheck healthCheck : healthCheckResult.getHealthChecks()) {
+        List<String> healthCheckIds = new ArrayList<>(Math.min(healthChecks.size(), LIST_TAGS_BATCH_SIZE));
+        for (HealthCheck healthCheck : healthChecks) {
             healthCheckIds.add(healthCheck.getId());
+            if (healthCheckIds.size() == LIST_TAGS_BATCH_SIZE) {
+                requestListTagsForResources(healthCheckIds, route53Client, healthCheckTagsMap);
+                healthCheckIds.clear();
+            }
         }
+        if (!healthCheckIds.isEmpty()) {
+            requestListTagsForResources(healthCheckIds, route53Client, healthCheckTagsMap);
+        }
+
+        return healthCheckTagsMap;
+    }
+
+    private static void requestListTagsForResources(
+            List<String> healthCheckIds,
+            AmazonRoute53 route53Client,
+            HashMap<String, HashMap<String, String>> healthCheckTagsMap) {
+        ListTagsForResourcesRequest tagsRequest = new ListTagsForResourcesRequest();
         tagsRequest.setResourceIds(healthCheckIds);
         tagsRequest.setResourceType(TagResourceType.Healthcheck);
 
@@ -95,8 +112,6 @@ public class Main {
         } catch (AmazonRoute53Exception e) {
             System.err.println("Tags request error: " + e.getMessage());
         }
-
-        return healthCheckTagsMap;
     }
 
     private static void sendEntity(
